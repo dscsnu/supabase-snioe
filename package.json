@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:sync": "npm run db:start && npm run db:reset && npx prisma db push && npx prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prisma": "^6.9.0",
+    "supabase": "^2.24.3",
+    "tsx": "^4.20.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0"
+  }
+}
