@@ -49,12 +49,68 @@ model GroupUserAssignment {
 }
 
 model UserProfile {
-  id        String                @id @db.Uuid
-  name      String
-  email     String                @unique
-  createdAt DateTime              @default(dbgenerated("now()")) @map("created_at")
+  id         String                @id @db.Uuid
+  name       String
+  email      String                @unique
+  createdAt  DateTime              @default(dbgenerated("now()")) @map("created_at")
   ///
-  groups    GroupUserAssignment[]
+  groups     GroupUserAssignment[]
+  membership Member?
 
   @@map("userprofile")
+}
+
+model Tenure {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  year     Int     @unique
+  isActive Boolean @default(false) @map("is_active")
+  ///
+  teams    Team[]
+
+  @@map("tenure")
+}
+
+model Team {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenureId    String       @map("tenure_id") @db.Uuid
+  name        String
+  description String?
+  ///
+  tenure      Tenure       @relation(fields: [tenureId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  members     TeamMember[]
+
+  @@unique([tenureId, name])
+  @@map("team")
+}
+
+model Member {
+  userId             String       @id @map("user_id") @db.Uuid
+  avatarUrl          String?      @map("avatar_url")
+  linkedinUrl        String?      @map("linkedin_url")
+  githubUrl          String?      @map("github_url")
+  personalWebsiteUrl String?      @map("personal_website_url")
+  createdAt          DateTime     @default(dbgenerated("now()")) @map("created_at")
+  ///
+  user               UserProfile  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  teams              TeamMember[]
+
+  @@map("member")
+}
+
+model TeamMember {
+  memberId String         @map("member_id") @db.Uuid
+  teamId   String         @map("team_id") @db.Uuid
+  type     TeamMemberType @default(MEMBER)
+  ///
+  member   Member         @relation(fields: [memberId], references: [userId], onDelete: Cascade, onUpdate: Restrict)
+  team     Team           @relation(fields: [teamId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([memberId, teamId])
+  @@map("teammember")
+}
+
+// -----== ENUMS ==-----
+enum TeamMemberType {
+  LEAD
+  MEMBER
 }
