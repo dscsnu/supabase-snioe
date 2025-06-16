@@ -27,7 +27,7 @@ export const userQueries = [
                 SELECT
                     g.id,
                     g.name,
-                    jsonb_agg(gpa.permission_id) as permissions
+                    jsonb_agg(gpa.permission_id) FILTER (WHERE gpa.permission_id IS NOT NULL) as permissions
                 FROM public.Group g
                 INNER JOIN public.GroupUserAssignment gua ON g.id = gua.group_id
                 LEFT JOIN public.GroupPermissionAssignment gpa ON g.id = gpa.group_id
