@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { userQueries } from "./queries/user";
+import { permissions, groups } from "./groups/aggregated";
 
 
 const db = new PrismaClient();
@@ -15,9 +16,54 @@ async function createUserTriggers() {
     }
 }
 
+async function createGroupsAndPermissions() {
+    const uniquePermissions = Array.from(new Set(permissions));
+
+    for (const value of uniquePermissions) {
+        await db.permission.upsert({
+            where: { value },
+            update: {},
+            create: { value }
+        });
+    }
+
+    for (const group of groups) {
+        const createdGroup = await db.group.upsert({
+            where: { name: group.name },
+            update: {},
+            create: {
+                name: group.name,
+                description: group.description,
+            },
+        });
+
+        const uniqueGroupPermissions = Array.from(new Set(group.permissions));
+
+        for (const permission of uniqueGroupPermissions) {
+            await db.groupPermissionAssignment.upsert({
+                where: {
+                    permissionId_groupId: {
+                        permissionId: permission,
+                        groupId: createdGroup.id,
+                    },
+                },
+                update: {},
+                create: {
+                    permissionId: permission,
+                    groupId: createdGroup.id,
+                },
+            });
+        }
+    }
+}
+
 async function main() {
     await createUserTriggers()
         .then(() => console.log('✅ userTriggers created'))
+        .catch((e) => console.error(`🚨 ${e}`));
+
+    await createGroupsAndPermissions()
+        .then(() => console.log('✅ Groups and Permission created'))
         .catch((e) => console.error(`🚨 ${e}`));
 }
 
