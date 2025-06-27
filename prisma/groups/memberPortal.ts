@@ -13,11 +13,12 @@ export const permissions = [
     "member-portal.team-member.create",
     "member-portal.team-member.delete",
     "member-portal.team-member.update-type",
+    "member-portal.team-member.update-type.special"
 ]
 
 export const groups = [
     {
-        name: "member-portal.admin",
+        name: "member-portal.core",
         description: "Full access to all member portal features, including member, tenure, team, and team member management.",
         permissions: [
             ...permissions
